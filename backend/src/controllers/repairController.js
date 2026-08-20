@@ -6,6 +6,7 @@ function toClientShape(row) {
     title: row.title,
     category: row.repair_type,
     description: row.problem_desc,
+    reporterName: row.reporter_name,
     community: row.community,
     location: row.location_name,
     coords: row.latitude != null ? { lat: Number(row.latitude), lng: Number(row.longitude) } : null,
@@ -69,15 +70,15 @@ export async function getById(req, res) {
 }
 
 export async function create(req, res) {
-  const { title, category, description, community, location, coords, priority, contactPhone, reporterId, images } = req.body
+  const { title, category, description, reporterName, community, location, coords, priority, contactPhone, reporterId, images } = req.body
   const id = await nextRequestId()
 
   const result = await query(
     `INSERT INTO tb_repairrequest
-      (request_id, user_id, repair_type, title, problem_desc, community, location_name, latitude, longitude, priority, contact_phone, images_before, status_code)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,'reported')
+      (request_id, user_id, repair_type, title, problem_desc, reporter_name, community, location_name, latitude, longitude, priority, contact_phone, images_before, status_code)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,'reported')
      RETURNING *`,
-    [id, reporterId, category, title, description, community || null, location || null,
+    [id, reporterId, category, title, description, reporterName || null, community || null, location || null,
       coords?.lat ?? null, coords?.lng ?? null, priority || 'normal', contactPhone, images || []]
   )
   res.status(201).json(toClientShape(result.rows[0]))

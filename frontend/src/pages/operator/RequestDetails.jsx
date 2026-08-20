@@ -58,7 +58,9 @@ export default function RequestDetails() {
               <Chip label={PRIORITY_LEVELS.find((p) => p.value === request.priority)?.label} color={PRIORITY_LEVELS.find((p) => p.value === request.priority)?.color} variant="outlined" />
             </Stack>
             <Typography color="text.secondary">{request.description}</Typography>
-            <Typography variant="body2" sx={{ mt: 2 }}><b>ตำแหน่ง:</b> {request.location}</Typography>
+            <Typography variant="body2" sx={{ mt: 2 }}><b>ผู้แจ้ง:</b> {request.reporterName || '-'}</Typography>
+            <Typography variant="body2"><b>เบอร์ติดต่อ:</b> {request.contactPhone || '-'}</Typography>
+            <Typography variant="body2"><b>ตำแหน่ง:</b> {request.location}</Typography>
             <Typography variant="body2"><b>แจ้งเมื่อ:</b> {dayjs(request.createdAt).format('D MMM YYYY HH:mm')}</Typography>
 
             {request.images?.length > 0 && (

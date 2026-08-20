@@ -1,61 +1,52 @@
-import { mockRepairRequests, mockTechnicians, mockStats } from './mock/mockData.js'
+import apiClient from './apiClient.js'
 
-const delay = (ms = 300) => new Promise((r) => setTimeout(r, ms))
-let requests = [...mockRepairRequests]
-
-// Mirrors the future REST endpoints: /repairs, /repairs/:id, /repairs/:id/assign ...
+// All repair endpoints now call the real backend. Response shape from the
+// backend controller (toClientShape in repairController.js) already matches
+// the mock field names 1:1, so no page-level changes were needed.
 export const repairService = {
+  // Uploads one image file to POST /api/upload and returns its public URL.
+  // Note: we pass FormData as-is with no manual Content-Type header — axios
+  // detects FormData and lets the browser set the multipart boundary itself.
+  // Setting the header manually here would break multer's parsing on the backend.
+  async uploadImage(file) {
+    const formData = new FormData()
+    formData.append('image', file)
+    const { data } = await apiClient.post('/upload', formData)
+    return data.url
+  },
+
   async list(filters = {}) {
-    await delay()
-    let data = [...requests]
-    if (filters.status) data = data.filter((r) => r.status === filters.status)
-    if (filters.category) data = data.filter((r) => r.category === filters.category)
-    if (filters.reporterId) data = data.filter((r) => r.reporterId === filters.reporterId)
-    if (filters.technicianId) data = data.filter((r) => r.technicianId === filters.technicianId)
-    if (filters.search) {
-      const q = filters.search.toLowerCase()
-      data = data.filter((r) => r.id.toLowerCase().includes(q) || r.title.toLowerCase().includes(q))
-    }
-    return data.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+    const { data } = await apiClient.get('/repairs', { params: filters })
+    return data
   },
 
   async getById(id) {
-    await delay()
-    const found = requests.find((r) => r.id === id)
-    if (!found) throw new Error('ไม่พบคำขอแจ้งซ่อม')
-    return found
+    const { data } = await apiClient.get(`/repairs/${id}`)
+    return data
   },
 
   async create(payload) {
-    await delay(600)
-    const id = `SR2026-${String(50 + requests.length).padStart(3, '0')}`
-    const newRequest = {
-      id, status: 'reported', technicianId: null, createdAt: new Date().toISOString(),
-      images: [], ...payload,
-    }
-    requests = [newRequest, ...requests]
-    return newRequest
+    const { data } = await apiClient.post('/repairs', payload)
+    return data
   },
 
   async assignTechnician(id, technicianId, priority) {
-    await delay()
-    requests = requests.map((r) => (r.id === id ? { ...r, technicianId, priority, status: 'assigned' } : r))
-    return requests.find((r) => r.id === id)
+    const { data } = await apiClient.post(`/repairs/${id}/assign`, { technicianId, priority })
+    return data
   },
 
-  async updateStatus(id, status) {
-    await delay()
-    requests = requests.map((r) => (r.id === id ? { ...r, status } : r))
-    return requests.find((r) => r.id === id)
+  async updateStatus(id, status, repairResult, imagesAfter) {
+    const { data } = await apiClient.patch(`/repairs/${id}/status`, { status, repairResult, imagesAfter })
+    return data
   },
 
   async listTechnicians() {
-    await delay()
-    return mockTechnicians
+    const { data } = await apiClient.get('/users/technicians')
+    return data
   },
 
   async getStats() {
-    await delay()
-    return mockStats
+    const { data } = await apiClient.get('/repairs/stats')
+    return data
   },
 }

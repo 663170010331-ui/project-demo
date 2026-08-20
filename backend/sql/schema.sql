@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS tb_repairrequest (
   repair_type     VARCHAR(50) NOT NULL,        -- electricity | water | road | streetlight | drainage | other
   title           VARCHAR(150) NOT NULL,
   problem_desc    TEXT,
+  reporter_name   VARCHAR(100),                -- name of the person reporting (may differ from the LINE account holder — e.g. a relative reporting for an elderly parent)
   community       VARCHAR(100),
   location_name   VARCHAR(150),
   latitude        DECIMAL,

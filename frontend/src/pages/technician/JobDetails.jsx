@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Box, Typography, Grid, Chip, Button, Stack, IconButton } from '@mui/material'
+import { Box, Typography, Grid, Chip, Button, Stack, IconButton, CircularProgress } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -19,6 +19,7 @@ export default function JobDetails() {
   const { id } = useParams()
   const { notify } = useNotifications()
   const [job, setJob] = useState(null)
+  // Each item: { id, preview (local blob URL), url (real uploaded URL, null while uploading), uploading, error }
   const [afterImages, setAfterImages] = useState([])
   const [updating, setUpdating] = useState(false)
 
@@ -26,16 +27,49 @@ export default function JobDetails() {
   useEffect(() => { load() }, [id])
 
   const handleImages = (e) => {
-    const files = Array.from(e.target.files || [])
-    setAfterImages((prev) => [...prev, ...files.map((f) => URL.createObjectURL(f))].slice(0, 5))
+    const files = Array.from(e.target.files || []).slice(0, 5 - afterImages.length)
+    const newItems = files.map((file) => ({
+      id: `${Date.now()}-${Math.random()}`,
+      preview: URL.createObjectURL(file),
+      url: null,
+      uploading: true,
+      error: '',
+    }))
+    setAfterImages((prev) => [...prev, ...newItems].slice(0, 5))
+
+    newItems.forEach((item, i) => {
+      const file = files[i]
+      repairService
+        .uploadImage(file)
+        .then((url) => {
+          setAfterImages((prev) => prev.map((img) => (img.id === item.id ? { ...img, url, uploading: false } : img)))
+        })
+        .catch(() => {
+          setAfterImages((prev) =>
+            prev.map((img) => (img.id === item.id ? { ...img, uploading: false, error: 'อัปโหลดไม่สำเร็จ' } : img))
+          )
+        })
+    })
   }
+
+  const removeAfterImage = (imgId) => {
+    setAfterImages((prev) => {
+      const target = prev.find((img) => img.id === imgId)
+      if (target) URL.revokeObjectURL(target.preview)
+      return prev.filter((img) => img.id !== imgId)
+    })
+  }
+
+  const uploadingCount = afterImages.filter((img) => img.uploading).length
 
   const handleUpdateStatus = async () => {
     const next = nextStatusMap[job.status]
     if (!next) return
     setUpdating(true)
     try {
-      await repairService.updateStatus(id, next)
+      // Only "completed" carries the after-repair photos — attach them here if any were uploaded.
+      const imagesAfter = next === 'completed' ? afterImages.filter((img) => img.url).map((img) => img.url) : undefined
+      await repairService.updateStatus(id, next, undefined, imagesAfter)
       notify(next === 'completed' ? 'ยืนยันงานซ่อมเสร็จสมบูรณ์แล้ว' : 'เริ่มดำเนินการซ่อมแล้ว')
       load()
     } finally {
@@ -72,19 +106,29 @@ export default function JobDetails() {
 
             <Typography fontWeight={700} sx={{ mt: 3, mb: 1 }}>รูปภาพหลังซ่อม</Typography>
             <Stack direction="row" spacing={1.5} flexWrap="wrap">
-              {afterImages.map((src, i) => (
-                <Box key={i} sx={{ position: 'relative', width: 84, height: 84 }}>
-                  <Box component="img" src={src} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover' }} />
-                  <IconButton size="small" onClick={() => setAfterImages(afterImages.filter((_, idx) => idx !== i))} sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'white', boxShadow: 1 }}>
+              {afterImages.map((img) => (
+                <Box key={img.id} sx={{ position: 'relative', width: 84, height: 84 }}>
+                  <Box component="img" src={img.preview} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover', opacity: img.uploading ? 0.5 : 1 }} />
+                  {img.uploading && (
+                    <CircularProgress size={22} sx={{ position: 'absolute', top: '50%', left: '50%', mt: '-11px', ml: '-11px' }} />
+                  )}
+                  {img.error && (
+                    <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 3, backgroundColor: 'rgba(220,38,38,0.15)' }}>
+                      <Typography variant="caption" color="error" fontWeight={700} sx={{ textAlign: 'center', px: 0.5 }}>ล้มเหลว</Typography>
+                    </Box>
+                  )}
+                  <IconButton size="small" onClick={() => removeAfterImage(img.id)} sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'white', boxShadow: 1 }}>
                     <CloseRoundedIcon fontSize="small" />
                   </IconButton>
                 </Box>
               ))}
-              <Button component="label" sx={{ width: 84, height: 84, borderRadius: 3, border: '1px dashed #cbd5e1', flexDirection: 'column', gap: 0.5 }}>
-                <PhotoCameraRoundedIcon sx={{ color: '#94a3b8' }} />
-                <Typography variant="caption" color="text.secondary">เพิ่มรูป</Typography>
-                <input type="file" hidden accept="image/*" multiple onChange={handleImages} />
-              </Button>
+              {afterImages.length < 5 && (
+                <Button component="label" sx={{ width: 84, height: 84, borderRadius: 3, border: '1px dashed #cbd5e1', flexDirection: 'column', gap: 0.5 }}>
+                  <PhotoCameraRoundedIcon sx={{ color: '#94a3b8' }} />
+                  <Typography variant="caption" color="text.secondary">เพิ่มรูป</Typography>
+                  <input type="file" hidden accept="image/*" multiple onChange={handleImages} />
+                </Button>
+              )}
             </Stack>
           </Box>
         </Grid>
@@ -99,8 +143,8 @@ export default function JobDetails() {
             <Typography fontWeight={700} sx={{ mb: 1.5 }}>การดำเนินการ</Typography>
             <Stack spacing={1.25}>
               {nextStatusMap[job.status] && (
-                <Button fullWidth variant="contained" disabled={updating} onClick={handleUpdateStatus}>
-                  {updating ? 'กำลังอัปเดต...' : nextStatusButtonLabel[job.status]}
+                <Button fullWidth variant="contained" disabled={updating || uploadingCount > 0} onClick={handleUpdateStatus}>
+                  {updating ? 'กำลังอัปเดต...' : uploadingCount > 0 ? `กำลังอัปโหลดรูป (${uploadingCount})...` : nextStatusButtonLabel[job.status]}
                 </Button>
               )}
               {job.status === 'assigned' && (

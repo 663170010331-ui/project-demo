@@ -25,14 +25,48 @@ export default function CreateRepairRequest() {
   const [coords, setCoords] = useState(null) // { lat, lng }
   const [geoError, setGeoError] = useState('')
   const [geoLoading, setGeoLoading] = useState(false)
+  // Each item: { id, preview (local blob URL, for instant display), url (real
+  // uploaded URL once done, null while uploading), uploading, error }
   const [images, setImages] = useState([])
   const [submitting, setSubmitting] = useState(false)
 
   const handleImages = (e) => {
     const files = Array.from(e.target.files || []).slice(0, 5 - images.length)
-    const previews = files.map((f) => URL.createObjectURL(f))
-    setImages((prev) => [...prev, ...previews].slice(0, 5))
+    const newItems = files.map((file) => ({
+      id: `${Date.now()}-${Math.random()}`,
+      preview: URL.createObjectURL(file),
+      url: null,
+      uploading: true,
+      error: '',
+    }))
+    setImages((prev) => [...prev, ...newItems].slice(0, 5))
+
+    // Upload each file to the backend right away so the request is ready to
+    // submit as soon as the user finishes filling the form.
+    newItems.forEach((item, i) => {
+      const file = files[i]
+      repairService
+        .uploadImage(file)
+        .then((url) => {
+          setImages((prev) => prev.map((img) => (img.id === item.id ? { ...img, url, uploading: false } : img)))
+        })
+        .catch(() => {
+          setImages((prev) =>
+            prev.map((img) => (img.id === item.id ? { ...img, uploading: false, error: 'อัปโหลดไม่สำเร็จ' } : img))
+          )
+        })
+    })
   }
+
+  const removeImage = (id) => {
+    setImages((prev) => {
+      const target = prev.find((img) => img.id === id)
+      if (target) URL.revokeObjectURL(target.preview)
+      return prev.filter((img) => img.id !== id)
+    })
+  }
+
+  const uploadingCount = images.filter((img) => img.uploading).length
 
   // Real browser geolocation — works inside LINE LIFF's in-app browser too.
   const handleShareLocation = () => {
@@ -61,9 +95,11 @@ export default function CreateRepairRequest() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    if (uploadingCount > 0) return // safety net — the submit button is disabled while this is true anyway
     setSubmitting(true)
     try {
-      const created = await repairService.create({ ...form, coords, reporterId: user.id, images })
+      const uploadedUrls = images.filter((img) => img.url).map((img) => img.url)
+      const created = await repairService.create({ ...form, coords, reporterId: user.id, images: uploadedUrls })
       notify(`แจ้งซ่อมสำเร็จ หมายเลขคำขอ ${created.id}`)
       navigate('/citizen/track')
     } finally {
@@ -108,11 +144,22 @@ export default function CreateRepairRequest() {
           <Box>
             <Typography fontWeight={700} sx={{ mb: 1 }}>แนบรูปภาพ (ไม่บังคับ)</Typography>
             <Stack direction="row" spacing={1.5} flexWrap="wrap">
-              {images.map((src, i) => (
-                <Box key={i} sx={{ position: 'relative', width: 84, height: 84 }}>
-                  <Box component="img" src={src} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover' }} />
+              {images.map((img) => (
+                <Box key={img.id} sx={{ position: 'relative', width: 84, height: 84 }}>
+                  <Box
+                    component="img" src={img.preview}
+                    sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover', opacity: img.uploading ? 0.5 : 1 }}
+                  />
+                  {img.uploading && (
+                    <CircularProgress size={22} sx={{ position: 'absolute', top: '50%', left: '50%', mt: '-11px', ml: '-11px' }} />
+                  )}
+                  {img.error && (
+                    <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 3, backgroundColor: 'rgba(220,38,38,0.15)' }}>
+                      <Typography variant="caption" color="error" fontWeight={700} sx={{ textAlign: 'center', px: 0.5 }}>ล้มเหลว</Typography>
+                    </Box>
+                  )}
                   <IconButton
-                    size="small" onClick={() => setImages(images.filter((_, idx) => idx !== i))}
+                    size="small" onClick={() => removeImage(img.id)}
                     sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'white', boxShadow: 1, '&:hover': { backgroundColor: '#fee2e2' } }}
                   >
                     <CloseRoundedIcon fontSize="small" />
@@ -182,8 +229,8 @@ export default function CreateRepairRequest() {
 
           <TextField label="เบอร์ติดต่อกลับ" required fullWidth value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
 
-          <Button type="submit" size="large" variant="contained" disabled={submitting}>
-            {submitting ? 'กำลังส่งคำขอ...' : 'ส่งการแจ้งซ่อม'}
+          <Button type="submit" size="large" variant="contained" disabled={submitting || uploadingCount > 0}>
+            {submitting ? 'กำลังส่งคำขอ...' : uploadingCount > 0 ? `กำลังอัปโหลดรูป (${uploadingCount})...` : 'ส่งการแจ้งซ่อม'}
           </Button>
         </Stack>
       </Box>
