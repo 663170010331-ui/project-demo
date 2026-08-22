@@ -1,5 +1,4 @@
 import apiClient from './apiClient.js'
-import { mockUsers } from './mock/mockData.js'
 
 const delay = (ms = 400) => new Promise((r) => setTimeout(r, ms))
 
@@ -12,13 +11,11 @@ export const authService = {
     return data // { user, token } — shape already matches what AuthContext expects
   },
 
-  // Real LIFF login needs an access token from the LINE SDK (see plan step 6-7).
-  // Until liffService.js exists, calling this will just fail against the real
-  // backend (it requires accessToken) — kept as a mock so the "citizen" demo
-  // path still works while LIFF isn't wired up yet.
-  async loginWithLine() {
-    await delay()
-    return { user: mockUsers[0], token: 'mock-token-line' }
+  // Real LIFF login — accessToken/profile come from liffService.getLiffAuth().
+  // Backend verifies the token with LINE, then finds-or-creates the tb_user row.
+  async loginWithLine(accessToken, profile) {
+    const { data } = await apiClient.post('/auth/line-login', { accessToken, profile })
+    return data // { user, token }
   },
 
   // Backend has no /api/auth/register endpoint yet — mock until it's built.

@@ -26,8 +26,8 @@ export function AuthProvider({ children }) {
     return u
   }, [])
 
-  const loginWithLine = useCallback(async () => {
-    const { user: u, token } = await authService.loginWithLine()
+  const loginWithLine = useCallback(async (accessToken, profile) => {
+    const { user: u, token } = await authService.loginWithLine(accessToken, profile)
     persist(u, token)
     return u
   }, [])
