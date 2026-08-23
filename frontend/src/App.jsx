@@ -15,6 +15,7 @@ import MainLayout from './layouts/MainLayout.jsx'
 import AuthLayout from './layouts/AuthLayout.jsx'
 import DashboardLayout from './layouts/DashboardLayout.jsx'
 import ProtectedRoute from './routes/ProtectedRoute.jsx'
+import LiffRoute from './routes/LiffRoute.jsx'
 import { ROLES } from './utils/constants.js'
 
 import Home from './pages/public/Home.jsx'
@@ -88,10 +89,10 @@ export default function App() {
 
       <Route path="/unauthorized" element={<Unauthorized />} />
 
-      {/* Citizen */}
+      {/* Citizen — no login page; LiffRoute silently signs the user in via LINE LIFF */}
       <Route
         path="/citizen"
-        element={<ProtectedRoute allowedRoles={[ROLES.CITIZEN]}><DashboardLayout menu={citizenMenu} roleLabel="ผู้แจ้งซ่อม" /></ProtectedRoute>}
+        element={<LiffRoute><DashboardLayout menu={citizenMenu} roleLabel="ผู้แจ้งซ่อม" /></LiffRoute>}
       >
         <Route index element={<CitizenDashboard />} />
         <Route path="create" element={<CreateRepairRequest />} />
