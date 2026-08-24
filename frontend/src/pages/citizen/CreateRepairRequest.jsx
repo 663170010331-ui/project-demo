@@ -7,8 +7,8 @@ import {
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
-import RoomRoundedIcon from '@mui/icons-material/RoomRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
+import LocationPicker from '../../components/LocationPicker.jsx'
 import { REPAIR_CATEGORIES, PRIORITY_LEVELS, COMMUNITIES } from '../../utils/constants.js'
 import { repairService } from '../../services/repairService.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
@@ -23,6 +23,7 @@ export default function CreateRepairRequest() {
     priority: 'normal', contactPhone: user?.phone || '',
   })
   const [coords, setCoords] = useState(null) // { lat, lng }
+  const [recenterTrigger, setRecenterTrigger] = useState(0) // bump this to pan the map (GPS button), not on manual pin drags/clicks
   const [geoError, setGeoError] = useState('')
   const [geoLoading, setGeoLoading] = useState(false)
   // Each item: { id, preview (local blob URL, for instant display), url (real
@@ -80,6 +81,7 @@ export default function CreateRepairRequest() {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        setRecenterTrigger((n) => n + 1)
         setGeoLoading(false)
       },
       (err) => {
@@ -199,24 +201,10 @@ export default function CreateRepairRequest() {
 
           <Box>
             <Typography fontWeight={700} sx={{ mb: 1 }}>พิกัด (ถ้ามี)</Typography>
-            <Box
-              sx={{
-                height: 160, borderRadius: 3, backgroundColor: '#f1f5f9', display: 'flex', flexDirection: 'column',
-                alignItems: 'center', justifyContent: 'center', color: '#64748b', gap: 0.5, position: 'relative',
-              }}
-            >
-              {coords ? (
-                <>
-                  <RoomRoundedIcon sx={{ color: '#e0413f', fontSize: 32 }} />
-                  <Typography variant="body2" fontWeight={700}>
-                    {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
-                  </Typography>
-                  <Typography variant="caption">ปักหมุดจากตำแหน่งปัจจุบันของคุณ</Typography>
-                </>
-              ) : (
-                <Typography variant="body2">ยังไม่ได้ระบุพิกัด — แผนที่ Google Maps (เชื่อมต่อภายหลัง)</Typography>
-              )}
-            </Box>
+            <LocationPicker coords={coords} onChange={setCoords} recenterTrigger={recenterTrigger} height={260} />
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+              แตะบนแผนที่เพื่อปักหมุด หรือลากหมุดเพื่อปรับตำแหน่งให้ตรงจุด
+            </Typography>
 
             {geoError && <Alert severity="warning" sx={{ mt: 1.5, borderRadius: 2 }}>{geoError}</Alert>}
 
@@ -225,7 +213,7 @@ export default function CreateRepairRequest() {
                 variant="outlined" startIcon={geoLoading ? <CircularProgress size={16} /> : <MyLocationRoundedIcon />}
                 onClick={handleShareLocation} disabled={geoLoading}
               >
-                {geoLoading ? 'กำลังระบุตำแหน่ง...' : 'แชร์ตำแหน่งที่ตั้งปัจจุบัน'}
+                {geoLoading ? 'กำลังระบุตำแหน่ง...' : 'ใช้ตำแหน่งปัจจุบันของฉัน'}
               </Button>
               {coords && (
                 <Button variant="text" color="error" startIcon={<DeleteOutlineRoundedIcon />} onClick={() => setCoords(null)}>
@@ -233,6 +221,11 @@ export default function CreateRepairRequest() {
                 </Button>
               )}
             </Stack>
+            {coords && (
+              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#64748b' }}>
+                พิกัดที่เลือก: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
+              </Typography>
+            )}
           </Box>
 
           <TextField
