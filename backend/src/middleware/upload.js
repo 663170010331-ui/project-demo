@@ -35,7 +35,7 @@ export const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024, // 5MB per file
+    fileSize: 10 * 1024 * 1024, // 10MB per file — raised from 5MB: modern phone photos (esp. from Google Photos originals) routinely exceed 5MB
     files: 5, // max 5 files per request
   },
 })

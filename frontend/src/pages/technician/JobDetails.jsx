@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Box, Typography, Grid, Chip, Button, Stack, IconButton, CircularProgress } from '@mui/material'
+import { Box, Typography, Grid, Chip, Button, Stack, IconButton, CircularProgress, Alert } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -44,9 +44,10 @@ export default function JobDetails() {
         .then((url) => {
           setAfterImages((prev) => prev.map((img) => (img.id === item.id ? { ...img, url, uploading: false } : img)))
         })
-        .catch(() => {
+        .catch((err) => {
+          const message = err?.response?.data?.message || 'อัปโหลดไม่สำเร็จ (ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต)'
           setAfterImages((prev) =>
-            prev.map((img) => (img.id === item.id ? { ...img, uploading: false, error: 'อัปโหลดไม่สำเร็จ' } : img))
+            prev.map((img) => (img.id === item.id ? { ...img, uploading: false, error: message } : img))
           )
         })
     })
@@ -130,6 +131,13 @@ export default function JobDetails() {
                 </Button>
               )}
             </Stack>
+            {afterImages.some((img) => img.error) && (
+              <Stack spacing={0.5} sx={{ mt: 1 }}>
+                {afterImages.filter((img) => img.error).map((img) => (
+                  <Alert key={img.id} severity="error" sx={{ py: 0 }}>{img.error}</Alert>
+                ))}
+              </Stack>
+            )}
           </Box>
         </Grid>
 

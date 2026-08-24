@@ -50,9 +50,10 @@ export default function CreateRepairRequest() {
         .then((url) => {
           setImages((prev) => prev.map((img) => (img.id === item.id ? { ...img, url, uploading: false } : img)))
         })
-        .catch(() => {
+        .catch((err) => {
+          const message = err?.response?.data?.message || 'อัปโหลดไม่สำเร็จ (ตรวจสอบการเชื่อมต่ออินเทอร์เน็ต)'
           setImages((prev) =>
-            prev.map((img) => (img.id === item.id ? { ...img, uploading: false, error: 'อัปโหลดไม่สำเร็จ' } : img))
+            prev.map((img) => (img.id === item.id ? { ...img, uploading: false, error: message } : img))
           )
         })
     })
@@ -174,7 +175,14 @@ export default function CreateRepairRequest() {
                 </Button>
               )}
             </Stack>
-            <Typography variant="caption" color="text.secondary">สูงสุด 5 รูป (.jpg, .png)</Typography>
+            <Typography variant="caption" color="text.secondary">สูงสุด 5 รูป (.jpg, .png, .webp — ไม่เกิน 10MB ต่อไฟล์)</Typography>
+            {images.some((img) => img.error) && (
+              <Stack spacing={0.5} sx={{ mt: 1 }}>
+                {images.filter((img) => img.error).map((img) => (
+                  <Alert key={img.id} severity="error" sx={{ py: 0 }}>{img.error}</Alert>
+                ))}
+              </Stack>
+            )}
           </Box>
 
           <TextField

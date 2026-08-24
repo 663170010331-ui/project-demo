@@ -9,10 +9,6 @@ export const ROLES = {
 export const REPAIR_CATEGORIES = [
   { value: 'electricity', label: 'ไฟฟ้า', icon: '⚡' },
   { value: 'water', label: 'ประปา', icon: '💧' },
-  { value: 'road', label: 'ถนน', icon: '🛣️' },
-  { value: 'streetlight', label: 'ไฟส่องสว่าง', icon: '💡' },
-  { value: 'drainage', label: 'ท่อระบายน้ำ', icon: '🌊' },
-  { value: 'other', label: 'อื่นๆ', icon: '🔧' },
 ]
 
 export const PRIORITY_LEVELS = [
