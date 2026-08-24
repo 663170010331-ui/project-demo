@@ -5,13 +5,19 @@ import apiClient from './apiClient.js'
 // the mock field names 1:1, so no page-level changes were needed.
 export const repairService = {
   // Uploads one image file to POST /api/upload and returns its public URL.
-  // Note: we pass FormData as-is with no manual Content-Type header — axios
-  // detects FormData and lets the browser set the multipart boundary itself.
-  // Setting the header manually here would break multer's parsing on the backend.
+  // IMPORTANT: apiClient sets a default 'Content-Type: application/json' header
+  // on the whole instance (see apiClient.js). That default does NOT get
+  // auto-replaced just because we send a FormData body — axios only auto-sets
+  // the multipart boundary when no Content-Type was explicitly configured.
+  // We must explicitly clear it here so the browser can generate the correct
+  // "multipart/form-data; boundary=..." header itself. Without this line,
+  // every upload silently arrives at the backend with no file in it.
   async uploadImage(file) {
     const formData = new FormData()
-    formData.append('image', file)
-    const { data } = await apiClient.post('/upload', formData)
+    formData.append('image', file, file.name)
+    const { data } = await apiClient.post('/upload', formData, {
+      headers: { 'Content-Type': undefined },
+    })
     return data.url
   },
 

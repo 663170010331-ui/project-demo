@@ -19,7 +19,7 @@ export default function CreateRepairRequest() {
   const { notify } = useNotifications()
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    category: 'electricity', title: '', description: '', location: '', community: '',
+    category: 'electricity', title: '', description: '', reporterName: user?.name || '', location: '', community: '',
     priority: 'normal', contactPhone: user?.phone || '',
   })
   const [coords, setCoords] = useState(null) // { lat, lng }
@@ -132,6 +132,13 @@ export default function CreateRepairRequest() {
             label="อธิบายปัญหาที่พบ" required fullWidth multiline minRows={3} value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             placeholder="เช่น ไฟดับตั้งแต่ 3 อาคาร A ห้อง 301 ไม่สามารถใช้งานได้ตั้งแต่เช้า"
+          />
+
+          <TextField
+            label="ชื่อผู้แจ้ง / ผู้ประสบปัญหา" required fullWidth value={form.reporterName}
+            onChange={(e) => setForm({ ...form, reporterName: e.target.value })}
+            placeholder="ชื่อ-นามสกุล ของผู้ที่ประสบปัญหาจริง"
+            helperText="กรณีแจ้งแทนผู้อื่น (เช่น ผู้สูงอายุที่บ้าน) กรุณาระบุชื่อของผู้ประสบปัญหาจริง ไม่ใช่ชื่อบัญชี LINE"
           />
 
           <TextField
