@@ -200,31 +200,34 @@ export default function CreateRepairRequest() {
           />
 
           <Box>
-            <Typography fontWeight={700} sx={{ mb: 1 }}>พิกัด (ถ้ามี)</Typography>
-            <LocationPicker coords={coords} onChange={setCoords} recenterTrigger={recenterTrigger} height={260} />
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-              แตะบนแผนที่เพื่อปักหมุด หรือลากหมุดเพื่อปรับตำแหน่งให้ตรงจุด
+            <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{ mb: 1 }} flexWrap="wrap" rowGap={1}>
+              <Typography fontWeight={700}>พิกัดแผนที่ (GPS)</Typography>
+              <Button
+                variant="outlined" size="small" sx={{ borderRadius: 999 }}
+                startIcon={geoLoading ? <CircularProgress size={14} /> : <MyLocationRoundedIcon fontSize="small" />}
+                onClick={handleShareLocation} disabled={geoLoading}
+              >
+                {geoLoading ? 'กำลังดึงพิกัด...' : 'ดึงพิกัดปัจจุบัน'}
+              </Button>
+            </Stack>
+
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+              {coords
+                ? `พิกัด: ${coords.lat.toFixed(6)}, ${coords.lng.toFixed(6)} (สามารถแตะหรือลากหมุดบนแผนที่ได้)`
+                : 'ยังไม่ได้ระบุพิกัด — แตะบนแผนที่เพื่อปักหมุด หรือกด "ดึงพิกัดปัจจุบัน"'}
             </Typography>
+
+            <LocationPicker coords={coords} onChange={setCoords} recenterTrigger={recenterTrigger} height={260} />
 
             {geoError && <Alert severity="warning" sx={{ mt: 1.5, borderRadius: 2 }}>{geoError}</Alert>}
 
-            <Stack direction="row" spacing={1.5} sx={{ mt: 1.5 }}>
-              <Button
-                variant="outlined" startIcon={geoLoading ? <CircularProgress size={16} /> : <MyLocationRoundedIcon />}
-                onClick={handleShareLocation} disabled={geoLoading}
-              >
-                {geoLoading ? 'กำลังระบุตำแหน่ง...' : 'ใช้ตำแหน่งปัจจุบันของฉัน'}
-              </Button>
-              {coords && (
-                <Button variant="text" color="error" startIcon={<DeleteOutlineRoundedIcon />} onClick={() => setCoords(null)}>
-                  ลบพิกัด
-                </Button>
-              )}
-            </Stack>
             {coords && (
-              <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#64748b' }}>
-                พิกัดที่เลือก: {coords.lat.toFixed(6)}, {coords.lng.toFixed(6)}
-              </Typography>
+              <Button
+                variant="text" color="error" size="small" sx={{ mt: 1 }}
+                startIcon={<DeleteOutlineRoundedIcon />} onClick={() => setCoords(null)}
+              >
+                ลบพิกัด
+              </Button>
             )}
           </Box>
 
