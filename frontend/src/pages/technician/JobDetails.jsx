@@ -105,6 +105,16 @@ export default function JobDetails() {
             <Typography variant="body2" sx={{ mt: 2 }}><b>ตำแหน่ง:</b> {job.location}</Typography>
             <Typography variant="body2"><b>แจ้งเมื่อ:</b> {dayjs(job.createdAt).format('D MMM YYYY HH:mm')}</Typography>
 
+            {job.coords && (
+              <Button
+                variant="outlined" size="small" sx={{ mt: 1.5, borderRadius: 999 }}
+                startIcon={<span role="img" aria-label="navigate">🧭</span>}
+                onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&destination=${job.coords.lat},${job.coords.lng}`, '_blank')}
+              >
+                นำทางไปยังจุดเกิดเหตุ
+              </Button>
+            )}
+
             <Typography fontWeight={700} sx={{ mt: 3, mb: 1 }}>รูปภาพหลังซ่อม</Typography>
             <Stack direction="row" spacing={1.5} flexWrap="wrap">
               {afterImages.map((img) => (

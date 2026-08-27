@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { authService } from '../services/authService.js'
 import { STORAGE_KEYS } from '../utils/constants.js'
+import { liff } from '../services/liffService.js'
 
 const AuthContext = createContext(null)
 
@@ -39,11 +40,21 @@ export function AuthProvider({ children }) {
   }, [])
 
   const logout = useCallback(async () => {
-    await authService.logout()
+    const isCitizen = user?.role === 'citizen'
     localStorage.removeItem(STORAGE_KEYS.USER)
     localStorage.removeItem(STORAGE_KEYS.TOKEN)
     setUser(null)
-  }, [])
+    if (isCitizen) {
+      // Citizens never had a username/password session — there's no "/login" for
+      // them. liff.logout() clears the LIFF SDK session; closeWindow() returns
+      // straight to the LINE chat instead of redirecting to LINE's own login
+      // page (which is what caused the 400 Bad Request bug).
+      if (liff.isLoggedIn()) liff.logout()
+      liff.closeWindow()
+    } else {
+      await authService.logout()
+    }
+  }, [user])
 
   return (
     <AuthContext.Provider value={{ user, loading, login, loginWithLine, register, logout, isAuthenticated: !!user }}>

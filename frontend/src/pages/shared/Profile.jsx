@@ -47,16 +47,20 @@ export default function Profile() {
                 <Box><Button type="submit" variant="contained">บันทึกข้อมูล</Button></Box>
               </Stack>
             </Box>
-            <Divider sx={{ my: 3 }} />
-            <Typography fontWeight={700} sx={{ mb: 2 }}>เปลี่ยนรหัสผ่าน</Typography>
-            <Box component="form" onSubmit={changePassword}>
-              <Stack spacing={2}>
-                <TextField label="รหัสผ่านปัจจุบัน" type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} fullWidth />
-                <TextField label="รหัสผ่านใหม่" type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} fullWidth />
-                <TextField label="ยืนยันรหัสผ่านใหม่" type="password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} fullWidth />
-                <Box><Button type="submit" variant="outlined">เปลี่ยนรหัสผ่าน</Button></Box>
-              </Stack>
-            </Box>
+            {user?.role !== 'citizen' && (
+              <>
+                <Divider sx={{ my: 3 }} />
+                <Typography fontWeight={700} sx={{ mb: 2 }}>เปลี่ยนรหัสผ่าน</Typography>
+                <Box component="form" onSubmit={changePassword}>
+                  <Stack spacing={2}>
+                    <TextField label="รหัสผ่านปัจจุบัน" type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} fullWidth />
+                    <TextField label="รหัสผ่านใหม่" type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} fullWidth />
+                    <TextField label="ยืนยันรหัสผ่านใหม่" type="password" value={pw.confirm} onChange={(e) => setPw({ ...pw, confirm: e.target.value })} fullWidth />
+                    <Box><Button type="submit" variant="outlined">เปลี่ยนรหัสผ่าน</Button></Box>
+                  </Stack>
+                </Box>
+              </>
+            )}
           </Box>
         </Grid>
       </Grid>
