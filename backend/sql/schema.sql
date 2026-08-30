@@ -74,14 +74,18 @@ CREATE TABLE IF NOT EXISTS tb_repairassignment (
 
 CREATE TABLE IF NOT EXISTS tb_notification (
   notification_id  SERIAL PRIMARY KEY,
-  user_id          INT,                 -- recipient (tb_user / tb_operator / tb_technician id, see recipient_role)
-  recipient_role   VARCHAR(20),         -- citizen | operator | technician
-  title            VARCHAR(150),
-  message          TEXT,
-  is_read          BOOLEAN DEFAULT FALSE,
-  created_at       TIMESTAMP DEFAULT NOW()
+  recipient_role    VARCHAR(20) NOT NULL,        -- citizen | operator | technician
+  recipient_id      INT NOT NULL,                -- user_id / operator_id / technician_id depending on recipient_role
+  request_id        VARCHAR(20) REFERENCES tb_repairrequest(request_id),
+  type              VARCHAR(20) NOT NULL DEFAULT 'info', -- info | success
+  title             VARCHAR(150) NOT NULL,
+  message           TEXT,
+  is_read           BOOLEAN DEFAULT FALSE,
+  created_at        TIMESTAMP DEFAULT NOW()
 );
 
 CREATE INDEX IF NOT EXISTS idx_repairrequest_status ON tb_repairrequest(status_code);
 CREATE INDEX IF NOT EXISTS idx_repairrequest_user ON tb_repairrequest(user_id);
 CREATE INDEX IF NOT EXISTS idx_assignment_technician ON tb_repairassignment(technician_id);
+CREATE INDEX IF NOT EXISTS idx_notification_recipient ON tb_notification(recipient_role, recipient_id);
+CREATE INDEX IF NOT EXISTS idx_notification_created ON tb_notification(created_at DESC);

@@ -1,4 +1,5 @@
 import { query } from '../config/db.js'
+import { createNotification, notifyAllOperators } from '../utils/notificationHelper.js'
 
 function toClientShape(row) {
   return {
@@ -81,6 +82,14 @@ export async function create(req, res) {
     [id, reporterId, category, title, description, reporterName || null, community || null, location || null,
       coords?.lat ?? null, coords?.lng ?? null, priority || 'normal', contactPhone, images || []]
   )
+
+  await notifyAllOperators({
+    requestId: id,
+    type: 'info',
+    title: 'มีคำขอแจ้งซ่อมใหม่เข้ามา',
+    message: `#${id} ${title}`,
+  })
+
   res.status(201).json(toClientShape(result.rows[0]))
 }
 
@@ -105,7 +114,28 @@ export async function assignTechnician(req, res) {
   }
 
   const updated = await query('SELECT * FROM tb_repairrequest WHERE request_id = $1', [id])
-  res.json(toClientShape({ ...updated.rows[0], technician_id: technicianId }))
+  const row = updated.rows[0]
+
+  await createNotification({
+    recipientRole: 'technician',
+    recipientId: technicianId,
+    requestId: id,
+    type: 'info',
+    title: 'ได้รับมอบหมายงานใหม่',
+    message: `งานแจ้งซ่อม #${id} ${row.title} ถูกมอบหมายให้คุณแล้ว`,
+  })
+  if (row.user_id) {
+    await createNotification({
+      recipientRole: 'citizen',
+      recipientId: row.user_id,
+      requestId: id,
+      type: 'success',
+      title: `งานแจ้งซ่อม #${id} มอบหมายสำเร็จ`,
+      message: 'ระบบมอบหมายงานให้ช่างเทคนิคแล้ว กำลังดำเนินการ',
+    })
+  }
+
+  res.json(toClientShape({ ...row, technician_id: technicianId }))
 }
 
 export async function updateStatus(req, res) {
@@ -125,7 +155,29 @@ export async function updateStatus(req, res) {
   }
 
   const result = await query('SELECT * FROM tb_repairrequest WHERE request_id = $1', [id])
-  res.json(toClientShape(result.rows[0]))
+  const row = result.rows[0]
+
+  if (row.user_id) {
+    const STATUS_LABEL = {
+      accepted: 'รับเรื่องแล้ว',
+      in_progress: 'กำลังดำเนินการ',
+      completed: 'เสร็จสมบูรณ์',
+      cancelled: 'ถูกยกเลิก',
+    }
+    const label = STATUS_LABEL[status] || status
+    await createNotification({
+      recipientRole: 'citizen',
+      recipientId: row.user_id,
+      requestId: id,
+      type: status === 'completed' ? 'success' : 'info',
+      title: `งานแจ้งซ่อม #${id} ${label}`,
+      message: status === 'completed'
+        ? 'ช่างเทคนิคยืนยันการซ่อมเสร็จสิ้นแล้ว'
+        : `สถานะงานแจ้งซ่อมของคุณอัปเดตเป็น "${label}"`,
+    })
+  }
+
+  res.json(toClientShape(row))
 }
 
 export async function getStats(req, res) {

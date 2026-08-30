@@ -9,6 +9,7 @@ import authRoutes from './routes/authRoutes.js'
 import repairRoutes from './routes/repairRoutes.js'
 import userRoutes from './routes/userRoutes.js'
 import uploadRoutes from './routes/uploadRoutes.js'
+import notificationRoutes from './routes/notificationRoutes.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -28,6 +29,7 @@ app.use('/api/auth', authRoutes)
 app.use('/api/repairs', repairRoutes)
 app.use('/api/users', userRoutes)
 app.use('/api/upload', uploadRoutes)
+app.use('/api/notifications', notificationRoutes)
 
 // Central error handler — keeps controllers free of try/catch boilerplate
 app.use((err, req, res, next) => {
