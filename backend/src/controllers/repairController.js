@@ -157,7 +157,17 @@ export async function updateStatus(req, res) {
   const result = await query('SELECT * FROM tb_repairrequest WHERE request_id = $1', [id])
   const row = result.rows[0]
 
-  if (row.user_id) {
+  if (status === 'reported') {
+    // Technician rejected the job (frontend sends status back to 'reported').
+    // The citizen doesn't need to act here — the operator does, so they're
+    // the one who must get notified to reassign it to someone else.
+    await notifyAllOperators({
+      requestId: id,
+      type: 'info',
+      title: `งานแจ้งซ่อม #${id} ถูกช่างปฏิเสธ`,
+      message: `${row.title} ถูกช่างเทคนิคปฏิเสธ กรุณามอบหมายช่างคนใหม่`,
+    })
+  } else if (row.user_id) {
     const STATUS_LABEL = {
       accepted: 'รับเรื่องแล้ว',
       in_progress: 'กำลังดำเนินการ',

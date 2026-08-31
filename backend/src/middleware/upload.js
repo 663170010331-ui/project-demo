@@ -1,26 +1,4 @@
 import multer from 'multer'
-import path from 'path'
-import fs from 'fs'
-import crypto from 'crypto'
-import { fileURLToPath } from 'url'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
-
-// Files land in <project-root>/uploads (served statically at /uploads, see server.js)
-export const UPLOAD_DIR = path.join(__dirname, '../../uploads')
-
-if (!fs.existsSync(UPLOAD_DIR)) {
-  fs.mkdirSync(UPLOAD_DIR, { recursive: true })
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOAD_DIR),
-  filename: (req, file, cb) => {
-    // Random name avoids collisions and strips any path info from the original filename
-    const unique = crypto.randomBytes(16).toString('hex')
-    cb(null, `${unique}${path.extname(file.originalname).toLowerCase()}`)
-  },
-})
 
 const ALLOWED_MIME = ['image/jpeg', 'image/png', 'image/webp', 'image/gif']
 
@@ -31,11 +9,16 @@ function fileFilter(req, file, cb) {
   cb(null, true)
 }
 
+// memoryStorage: the file lives only as a Buffer in req.file(s), long
+// enough to stream straight to Cloudinary (see uploadController.js) and is
+// then discarded. Previously this used diskStorage into <project-root>/uploads
+// — on Render's free tier that folder is wiped on every deploy and every
+// spin-down/restart, so any photo saved there was liable to vanish later.
 export const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB per file — raised from 5MB: modern phone photos (esp. from Google Photos originals) routinely exceed 5MB
+    fileSize: 10 * 1024 * 1024, // 10MB per file
     files: 5, // max 5 files per request
   },
 })
