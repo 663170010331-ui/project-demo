@@ -39,6 +39,17 @@ export function AuthProvider({ children }) {
     return u
   }, [])
 
+  // Merges freshly-saved fields (name/phone/email) into the cached user —
+  // no new token involved, just keeps localStorage/navbar/etc. in sync with
+  // whatever the person just saved on the Profile page.
+  const updateUser = useCallback((patch) => {
+    setUser((prev) => {
+      const next = { ...prev, ...patch }
+      localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(next))
+      return next
+    })
+  }, [])
+
   const logout = useCallback(async () => {
     const isCitizen = user?.role === 'citizen'
     localStorage.removeItem(STORAGE_KEYS.USER)
@@ -57,7 +68,7 @@ export function AuthProvider({ children }) {
   }, [user])
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, loginWithLine, register, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, loading, login, loginWithLine, register, updateUser, logout, isAuthenticated: !!user }}>
       {children}
     </AuthContext.Provider>
   )

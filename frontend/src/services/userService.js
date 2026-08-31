@@ -1,8 +1,5 @@
 import apiClient from './apiClient.js'
 
-// Connects ManageUsers.jsx to the real backend (GET /api/users was written
-// and working since the very first backend pass — only the frontend never
-// called it, so the page kept showing 5 hardcoded mock names).
 export const userService = {
   async list() {
     const { data } = await apiClient.get('/users')
@@ -20,6 +17,30 @@ export const userService = {
   // role === 'citizen'. ManageUsers.jsx guards against that (see below).
   async toggleStatus(role, id) {
     const { data } = await apiClient.patch(`/users/${role}/${id}/toggle-status`)
+    return data
+  },
+
+  // Self-service — the logged-in user's own profile (Profile.jsx).
+  async updateMe(payload) {
+    const { data } = await apiClient.patch('/users/me', payload)
+    return data
+  },
+  async changeMyPassword(payload) {
+    const { data } = await apiClient.patch('/users/me/password', payload)
+    return data
+  },
+
+  // Admin CRUD — operator managing operator/technician accounts (ManageUsers.jsx).
+  async create(payload) {
+    const { data } = await apiClient.post('/users', payload)
+    return data
+  },
+  async update(role, id, payload) {
+    const { data } = await apiClient.patch(`/users/${role}/${id}`, payload)
+    return data
+  },
+  async remove(role, id) {
+    const { data } = await apiClient.delete(`/users/${role}/${id}`)
     return data
   },
 }
