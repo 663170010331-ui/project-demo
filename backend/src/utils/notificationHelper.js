@@ -1,4 +1,5 @@
 import { query } from '../config/db.js'
+import { pushLineMessage } from './lineMessaging.js'
 
 // Inserts one row into tb_notification. Called directly for notifications
 // that go to a single, already-known recipient (e.g. "the technician who
@@ -16,7 +17,32 @@ export async function createNotification({ recipientRole, recipientId, requestId
      RETURNING *`,
     [recipientRole, recipientId, requestId, type, title, message]
   )
+
+  // Citizens are the only role with a LINE identity — operators/technicians
+  // log in with username/password, not LINE, so there's no line_id to push
+  // to for those two roles. Every citizen notification therefore also
+  // reaches their LINE chat automatically, with no extra call site needed.
+  if (recipientRole === 'citizen') {
+    await notifyCitizenViaLine(recipientId, title, message)
+  }
+
   return result.rows[0]
+}
+
+// Looks up the citizen's line_id and pushes a LINE message. Wrapped so a
+// LINE-side failure (expired token, user blocked the OA, network hiccup)
+// never breaks the request that triggered it — the in-app notification
+// above has already been saved successfully by this point regardless.
+async function notifyCitizenViaLine(userId, title, message) {
+  try {
+    const result = await query('SELECT line_id FROM tb_user WHERE user_id = $1', [userId])
+    const lineId = result.rows[0]?.line_id
+    if (!lineId) return
+    const text = message ? `${title}\n${message}` : title
+    await pushLineMessage(lineId, text)
+  } catch (err) {
+    console.error('notifyCitizenViaLine failed (non-fatal):', err.response?.data || err.message)
+  }
 }
 
 // Fans a notification out to every active operator — used when a new repair
