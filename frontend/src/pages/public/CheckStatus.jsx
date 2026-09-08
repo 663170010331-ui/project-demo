@@ -25,7 +25,7 @@ export default function CheckStatus() {
     if (!code.trim()) return
     setLoading(true)
     try {
-      const found = await repairService.getById(code.trim().toUpperCase())
+      const found = await repairService.getPublicById(code.trim().toUpperCase())
       setResult(found)
     } catch {
       setError('ไม่พบรหัสติดตามนี้ในระบบ กรุณาตรวจสอบอีกครั้ง')

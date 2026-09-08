@@ -70,6 +70,31 @@ export async function getById(req, res) {
   res.json(toClientShape(result.rows[0]))
 }
 
+// GET /api/repairs/:id/public — no auth required. Backs the public "ตรวจสอบสถานะ"
+// page (CheckStatus.jsx), which anyone can open without an account — e.g. a
+// family member the citizen shared the tracking code with. Deliberately
+// returns only what's needed to show progress (title/category/status/date) —
+// NEVER the reporter's name, phone number, or exact location. Those stay
+// behind the authenticated GET /:id below; without this split, opening up
+// tracking-by-code would leak every requester's phone number to anyone
+// willing to guess or enumerate request IDs.
+export async function getPublicById(req, res) {
+  const result = await query(
+    `SELECT request_id, title, repair_type, status_code, created_at
+     FROM tb_repairrequest WHERE request_id = $1`,
+    [req.params.id.toUpperCase()]
+  )
+  if (!result.rows.length) return res.status(404).json({ message: 'ไม่พบคำขอแจ้งซ่อม' })
+  const row = result.rows[0]
+  res.json({
+    id: row.request_id,
+    title: row.title,
+    category: row.repair_type,
+    status: row.status_code,
+    createdAt: row.created_at,
+  })
+}
+
 export async function create(req, res) {
   const { title, category, description, reporterName, community, location, coords, priority, contactPhone, reporterId, images } = req.body
   const id = await nextRequestId()

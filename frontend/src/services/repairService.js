@@ -31,6 +31,14 @@ export const repairService = {
     return data
   },
 
+  // Used only by the public CheckStatus page (no login). Returns a reduced
+  // shape — title/category/status/createdAt only, no reporter name/phone/
+  // location — matching what the backend's public endpoint sends back.
+  async getPublicById(id) {
+    const { data } = await apiClient.get(`/repairs/${id}/public`)
+    return data
+  },
+
   async create(payload) {
     const { data } = await apiClient.post('/repairs', payload)
     return data
