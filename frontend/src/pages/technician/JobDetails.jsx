@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { Box, Typography, Grid, Chip, Button, Stack, IconButton, CircularProgress, Alert } from '@mui/material'
+import { Box, Typography, Grid, Chip, Button, Stack, IconButton, CircularProgress, Alert, TextField } from '@mui/material'
 import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import PhotoCameraRoundedIcon from '@mui/icons-material/PhotoCameraRounded'
 import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
@@ -21,6 +21,7 @@ export default function JobDetails() {
   const [job, setJob] = useState(null)
   // Each item: { id, preview (local blob URL), url (real uploaded URL, null while uploading), uploading, error }
   const [afterImages, setAfterImages] = useState([])
+  const [repairResult, setRepairResult] = useState('')
   const [updating, setUpdating] = useState(false)
 
   const load = () => repairService.getById(id).then(setJob)
@@ -66,11 +67,20 @@ export default function JobDetails() {
   const handleUpdateStatus = async () => {
     const next = nextStatusMap[job.status]
     if (!next) return
+    // Confirming "completed" requires a written note on what was actually
+    // repaired — the citizen and operator only ever see this text, they were
+    // never on-site, so an empty note here means they never find out what
+    // was actually done to fix their problem.
+    if (next === 'completed' && !repairResult.trim()) {
+      notify('กรุณากรอกรายละเอียดการซ่อมก่อนยืนยันว่าเสร็จ', 'error')
+      return
+    }
     setUpdating(true)
     try {
-      // Only "completed" carries the after-repair photos — attach them here if any were uploaded.
+      // Only "completed" carries the after-repair photos and repair notes.
       const imagesAfter = next === 'completed' ? afterImages.filter((img) => img.url).map((img) => img.url) : undefined
-      await repairService.updateStatus(id, next, undefined, imagesAfter)
+      const result = next === 'completed' ? repairResult.trim() : undefined
+      await repairService.updateStatus(id, next, result, imagesAfter)
       notify(next === 'completed' ? 'ยืนยันงานซ่อมเสร็จสมบูรณ์แล้ว' : 'เริ่มดำเนินการซ่อมแล้ว')
       load()
     } finally {
@@ -148,6 +158,27 @@ export default function JobDetails() {
                 ))}
               </Stack>
             )}
+
+            {job.status === 'in_progress' && (
+              <Box sx={{ mt: 3 }}>
+                <Typography fontWeight={700} sx={{ mb: 1 }}>รายละเอียดการซ่อม *</Typography>
+                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                  อธิบายว่าซ่อมอะไรไปบ้าง เปลี่ยนอะไรบ้าง — ผู้แจ้งและหัวหน้าช่างจะเห็นข้อความนี้
+                </Typography>
+                <TextField
+                  fullWidth multiline minRows={3}
+                  placeholder="เช่น เปลี่ยนฟิวส์เมนที่ขาด พร้อมตรวจสอบสายไฟทั้งเส้นแล้วไม่พบจุดชำรุดอื่น"
+                  value={repairResult} onChange={(e) => setRepairResult(e.target.value)}
+                />
+              </Box>
+            )}
+
+            {job.status === 'completed' && job.repairResult && (
+              <Box sx={{ mt: 3 }}>
+                <Typography fontWeight={700} sx={{ mb: 1 }}>รายละเอียดการซ่อม</Typography>
+                <Typography color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{job.repairResult}</Typography>
+              </Box>
+            )}
           </Box>
         </Grid>
 
@@ -161,7 +192,10 @@ export default function JobDetails() {
             <Typography fontWeight={700} sx={{ mb: 1.5 }}>การดำเนินการ</Typography>
             <Stack spacing={1.25}>
               {nextStatusMap[job.status] && (
-                <Button fullWidth variant="contained" disabled={updating || uploadingCount > 0} onClick={handleUpdateStatus}>
+                <Button
+                  fullWidth variant="contained" onClick={handleUpdateStatus}
+                  disabled={updating || uploadingCount > 0 || (nextStatusMap[job.status] === 'completed' && !repairResult.trim())}
+                >
                   {updating ? 'กำลังอัปเดต...' : uploadingCount > 0 ? `กำลังอัปโหลดรูป (${uploadingCount})...` : nextStatusButtonLabel[job.status]}
                 </Button>
               )}

@@ -74,6 +74,13 @@ export default function TrackRepairStatus() {
               <Typography fontWeight={700} sx={{ mb: 2 }}>{selected.title}</Typography>
               <RepairTimeline status={selected.status} />
 
+              {selected.status === 'completed' && selected.repairResult && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography fontWeight={700} sx={{ mb: 0.5 }}>รายละเอียดการซ่อม</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{selected.repairResult}</Typography>
+                </Box>
+              )}
+
               {selected.status === 'completed' && selected.imagesAfter?.length > 0 && (
                 <Box sx={{ mt: 3 }}>
                   <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพหลังซ่อมเสร็จ</Typography>

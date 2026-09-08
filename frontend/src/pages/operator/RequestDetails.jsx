@@ -70,6 +70,13 @@ export default function RequestDetails() {
                 ))}
               </Stack>
             )}
+
+            {request.status === 'completed' && request.repairResult && (
+              <Box sx={{ mt: 3 }}>
+                <Typography fontWeight={700} sx={{ mb: 0.5 }}>รายละเอียดการซ่อม (จากช่าง)</Typography>
+                <Typography color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{request.repairResult}</Typography>
+              </Box>
+            )}
           </Box>
         </Grid>
 

@@ -74,9 +74,10 @@ export default function Login() {
               ),
             }}
           />
-          <Typography component={Link} to="/forgot-password" variant="body2" sx={{ color: '#2f63f6', textDecoration: 'none', fontWeight: 600, alignSelf: 'flex-end' }}>
-            ลืมรหัสผ่าน?
-          </Typography>
+          {/* No self-service "forgot password" flow — this system has no email
+              sending set up, and ManageUsers deliberately doesn't expose
+              password resets either (see userController.js). A locked-out
+              staff account needs a developer to reset it directly in the DB. */}
           <Button type="submit" size="large" variant="contained" disabled={loading}>
             {loading ? 'กำลังเข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
           </Button>
@@ -93,7 +94,7 @@ export default function Login() {
           <Button
             fullWidth variant="contained" startIcon={<ChatBubbleRoundedIcon />}
             sx={{ backgroundColor: '#06C755', '&:hover': { backgroundColor: '#05a648' } }}
-            href="https://line.me/R/ti/p/@yourlineoa" target="_blank" rel="noopener"
+            href="https://line.me/R/ti/p/@382vxbgd" target="_blank" rel="noopener"
           >
             แจ้งซ่อมผ่าน LINE OA
           </Button>

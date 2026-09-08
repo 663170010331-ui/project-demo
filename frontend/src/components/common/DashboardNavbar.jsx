@@ -45,7 +45,6 @@ export default function DashboardNavbar({ onMenuClick, roleLabel }) {
           </Box>
           <Divider />
           <MenuItem onClick={() => { setAnchorEl(null); navigate('profile') }}>โปรไฟล์</MenuItem>
-          <MenuItem onClick={() => { setAnchorEl(null); navigate('settings') }}>ตั้งค่า</MenuItem>
           <Divider />
           <MenuItem sx={{ color: '#e0413f' }} onClick={async () => { await logout(); navigate('/login') }}>
             ออกจากระบบ

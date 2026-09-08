@@ -6,7 +6,6 @@ import TimelineRoundedIcon from '@mui/icons-material/TimelineRounded'
 import HistoryRoundedIcon from '@mui/icons-material/HistoryRounded'
 import NotificationsRoundedIcon from '@mui/icons-material/NotificationsRounded'
 import PersonRoundedIcon from '@mui/icons-material/PersonRounded'
-import SettingsRoundedIcon from '@mui/icons-material/SettingsRounded'
 import AssignmentRoundedIcon from '@mui/icons-material/AssignmentRounded'
 import GroupRoundedIcon from '@mui/icons-material/GroupRounded'
 import EngineeringRoundedIcon from '@mui/icons-material/EngineeringRounded'
@@ -20,15 +19,12 @@ import { ROLES } from './utils/constants.js'
 
 import Home from './pages/public/Home.jsx'
 import Login from './pages/public/Login.jsx'
-import Register from './pages/public/Register.jsx'
-import ForgotPassword from './pages/public/ForgotPassword.jsx'
 import CheckStatus from './pages/public/CheckStatus.jsx'
 import NotFound from './pages/public/NotFound.jsx'
 import Unauthorized from './pages/public/Unauthorized.jsx'
 
 import Notifications from './pages/shared/Notifications.jsx'
 import Profile from './pages/shared/Profile.jsx'
-import Settings from './pages/shared/Settings.jsx'
 
 import CitizenDashboard from './pages/citizen/CitizenDashboard.jsx'
 import CreateRepairRequest from './pages/citizen/CreateRepairRequest.jsx'
@@ -51,7 +47,6 @@ const citizenMenu = [
   { path: '/citizen/history', label: 'ประวัติแจ้งซ่อม', icon: <HistoryRoundedIcon /> },
   { path: '/citizen/notifications', label: 'การแจ้งเตือน', icon: <NotificationsRoundedIcon /> },
   { path: '/citizen/profile', label: 'โปรไฟล์', icon: <PersonRoundedIcon /> },
-  { path: '/citizen/settings', label: 'ตั้งค่า', icon: <SettingsRoundedIcon /> },
 ]
 
 const operatorMenu = [
@@ -60,7 +55,6 @@ const operatorMenu = [
   { path: '/operator/users', label: 'จัดการผู้ใช้', icon: <GroupRoundedIcon /> },
   { path: '/operator/notifications', label: 'การแจ้งเตือน', icon: <NotificationsRoundedIcon /> },
   { path: '/operator/profile', label: 'โปรไฟล์', icon: <PersonRoundedIcon /> },
-  { path: '/operator/settings', label: 'ตั้งค่า', icon: <SettingsRoundedIcon /> },
 ]
 
 const technicianMenu = [
@@ -68,7 +62,6 @@ const technicianMenu = [
   { path: '/technician/jobs', label: 'งานที่ได้รับมอบหมาย', icon: <EngineeringRoundedIcon /> },
   { path: '/technician/notifications', label: 'การแจ้งเตือน', icon: <NotificationsRoundedIcon /> },
   { path: '/technician/profile', label: 'โปรไฟล์', icon: <PersonRoundedIcon /> },
-  { path: '/technician/settings', label: 'ตั้งค่า', icon: <SettingsRoundedIcon /> },
 ]
 
 export default function App() {
@@ -80,11 +73,10 @@ export default function App() {
         <Route path="/check-status" element={<CheckStatus />} />
       </Route>
 
-      {/* Auth */}
+      {/* Auth — staff login only. Citizens never register or reset a
+          password here; they're always identified via LINE LIFF. */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/forgot-password" element={<ForgotPassword />} />
       </Route>
 
       <Route path="/unauthorized" element={<Unauthorized />} />
@@ -100,7 +92,6 @@ export default function App() {
         <Route path="history" element={<RepairHistory />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Operator */}
@@ -114,7 +105,6 @@ export default function App() {
         <Route path="users" element={<ManageUsers />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="settings" element={<Settings />} />
       </Route>
 
       {/* Technician */}
@@ -127,7 +117,6 @@ export default function App() {
         <Route path="jobs/:id" element={<JobDetails />} />
         <Route path="notifications" element={<Notifications />} />
         <Route path="profile" element={<Profile />} />
-        <Route path="settings" element={<Settings />} />
       </Route>
 
       <Route path="*" element={<NotFound />} />

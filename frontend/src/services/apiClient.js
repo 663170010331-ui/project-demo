@@ -1,9 +1,9 @@
 import axios from 'axios'
 import { STORAGE_KEYS } from '../utils/constants.js'
 
-// Central axios instance. Backend is not implemented yet — every service module
-// (authService, repairService, ...) calls through this client so swapping mock
-// data for real endpoints later only touches one layer.
+// Central axios instance. Every service module (authService, repairService,
+// userService, notificationService, ...) calls through this single client,
+// so auth headers, base URL, and 401-handling stay in exactly one place.
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 15000,

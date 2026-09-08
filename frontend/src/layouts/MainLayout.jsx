@@ -36,7 +36,11 @@ export default function MainLayout() {
               ))}
             </Stack>
             <Button component={Link} to="/login" variant="outlined">เข้าสู่ระบบ</Button>
-            <Button component={Link} to="/register" variant="contained" sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
+            {/* Citizens report via the LINE OA directly — no web registration/login for them. */}
+            <Button
+              href="https://line.me/R/ti/p/@382vxbgd" target="_blank" rel="noopener"
+              variant="contained" sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+            >
               แจ้งปัญหา
             </Button>
           </Toolbar>

@@ -29,7 +29,9 @@ export default function Home() {
                 พร้อมติดตามสถานะการซ่อมได้แบบเรียลไทม์ ไม่ต้องรอสายโทรศัพท์อีกต่อไป
               </Typography>
               <Stack direction="row" spacing={2} sx={{ mt: 4 }}>
-                <Button component={Link} to="/register" size="large" variant="contained">เริ่มแจ้งปัญหา</Button>
+                {/* Citizens report via the LINE OA directly — there is no
+                    web registration/login for them (see Login.jsx). */}
+                <Button href="https://line.me/R/ti/p/@382vxbgd" target="_blank" rel="noopener" size="large" variant="contained">เริ่มแจ้งปัญหา</Button>
                 <Button component={Link} to="/login" size="large" variant="outlined">เข้าสู่ระบบ</Button>
               </Stack>
             </Grid>
