@@ -80,6 +80,41 @@ export default function CheckStatus() {
                 {REPAIR_CATEGORIES.find((c) => c.value === result.category)?.label} · แจ้งเมื่อ {dayjs(result.createdAt).format('D MMM YYYY HH:mm')}
               </Typography>
               <RepairTimeline status={result.status} />
+
+              {result.images?.length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพตอนแจ้ง</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                    {result.images.map((url) => (
+                      <Box
+                        key={url} component="img" src={url}
+                        sx={{ width: 88, height: 88, borderRadius: 3, objectFit: 'cover', border: '1px solid #e2e8f0' }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
+              {result.status === 'completed' && result.repairResult && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography fontWeight={700} sx={{ mb: 0.5 }}>รายละเอียดการซ่อม</Typography>
+                  <Typography variant="body2" color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{result.repairResult}</Typography>
+                </Box>
+              )}
+
+              {result.status === 'completed' && result.imagesAfter?.length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพหลังซ่อมเสร็จ</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                    {result.imagesAfter.map((url) => (
+                      <Box
+                        key={url} component="img" src={url}
+                        sx={{ width: 88, height: 88, borderRadius: 3, objectFit: 'cover', border: '1px solid #e2e8f0' }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
             </Box>
           )}
         </Box>

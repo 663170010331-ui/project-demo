@@ -74,6 +74,20 @@ export default function TrackRepairStatus() {
               <Typography fontWeight={700} sx={{ mb: 2 }}>{selected.title}</Typography>
               <RepairTimeline status={selected.status} />
 
+              {selected.images?.length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพตอนแจ้ง</Typography>
+                  <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                    {selected.images.map((url) => (
+                      <Box
+                        key={url} component="img" src={url}
+                        sx={{ width: 96, height: 96, borderRadius: 3, objectFit: 'cover', border: '1px solid #e2e8f0' }}
+                      />
+                    ))}
+                  </Box>
+                </Box>
+              )}
+
               {selected.status === 'completed' && selected.repairResult && (
                 <Box sx={{ mt: 3 }}>
                   <Typography fontWeight={700} sx={{ mb: 0.5 }}>รายละเอียดการซ่อม</Typography>

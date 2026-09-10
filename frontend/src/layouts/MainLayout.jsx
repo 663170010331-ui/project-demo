@@ -35,7 +35,9 @@ export default function MainLayout() {
                 </Button>
               ))}
             </Stack>
-            <Button component={Link} to="/login" variant="outlined">เข้าสู่ระบบ</Button>
+            <Button component={Link} to="/login" variant="outlined" sx={{ display: location.pathname === '/check-status' ? 'none' : 'inline-flex' }}>
+              เข้าสู่ระบบ
+            </Button>
             {/* Citizens report via the LINE OA directly — no web registration/login for them. */}
             <Button
               href="https://line.me/R/ti/p/@382vxbgd" target="_blank" rel="noopener"

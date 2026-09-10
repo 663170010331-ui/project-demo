@@ -80,7 +80,8 @@ export async function getById(req, res) {
 // willing to guess or enumerate request IDs.
 export async function getPublicById(req, res) {
   const result = await query(
-    `SELECT request_id, title, repair_type, status_code, created_at
+    `SELECT request_id, title, repair_type, status_code, created_at,
+            images_before, images_after, repair_result
      FROM tb_repairrequest WHERE request_id = $1`,
     [req.params.id.toUpperCase()]
   )
@@ -92,6 +93,12 @@ export async function getPublicById(req, res) {
     category: row.repair_type,
     status: row.status_code,
     createdAt: row.created_at,
+    // Photos and repair notes are about the *problem*, not the *person* —
+    // safe to show publicly. Name/phone/exact address stay excluded above;
+    // that boundary is unchanged.
+    images: row.images_before || [],
+    imagesAfter: row.images_after || [],
+    repairResult: row.repair_result,
   })
 }
 
