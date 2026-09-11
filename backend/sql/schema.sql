@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS tb_user (
   name         VARCHAR(100) NOT NULL,
   phone        VARCHAR(10),
   email        VARCHAR(100),
+  status       VARCHAR(20) NOT NULL DEFAULT 'active', -- active | inactive (operator-suspended, e.g. for spam reports)
   created_at   TIMESTAMP DEFAULT NOW()
 );
 

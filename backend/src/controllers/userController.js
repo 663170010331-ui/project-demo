@@ -25,20 +25,25 @@ export async function listUsers(req, res) {
   const [ops, techs, citizens] = await Promise.all([
     query(`SELECT operator_id AS id, name, username, phone, email, status, 'operator' AS role FROM tb_operator`),
     query(`SELECT technician_id AS id, name, username, phone, email, specialty, status, 'technician' AS role FROM tb_technician`),
-    query(`SELECT user_id AS id, name, phone, email, 'citizen' AS role FROM tb_user`),
+    query(`SELECT user_id AS id, name, phone, email, status, 'citizen' AS role FROM tb_user`),
   ])
   res.json([...ops.rows, ...techs.rows, ...citizens.rows])
 }
 
+// PATCH /api/users/:role/:id/toggle-status — flips active/inactive for any
+// of the 3 roles. For a citizen, "inactive" means blacklisted: create()
+// in repairController.js refuses new reports from them, but everything
+// else (login, viewing their own report history) still works normally.
 export async function toggleUserStatus(req, res) {
   const { role, id } = req.params
-  const table = role === 'operator' ? 'tb_operator' : 'tb_technician'
-  const idCol = role === 'operator' ? 'operator_id' : 'technician_id'
+  const meta = TABLE[role]
+  if (!meta) return res.status(400).json({ message: 'บทบาทไม่ถูกต้อง' })
   const result = await query(
-    `UPDATE ${table} SET status = CASE WHEN status = 'active' THEN 'inactive' ELSE 'active' END
-     WHERE ${idCol} = $1 RETURNING status`,
+    `UPDATE ${meta.table} SET status = CASE WHEN status = 'active' THEN 'inactive' ELSE 'active' END
+     WHERE ${meta.idCol} = $1 RETURNING status`,
     [id]
   )
+  if (!result.rows.length) return res.status(404).json({ message: 'ไม่พบผู้ใช้นี้' })
   res.json(result.rows[0])
 }
 

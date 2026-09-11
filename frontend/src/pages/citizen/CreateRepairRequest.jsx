@@ -102,9 +102,14 @@ export default function CreateRepairRequest() {
     setSubmitting(true)
     try {
       const uploadedUrls = images.filter((img) => img.url).map((img) => img.url)
-      const created = await repairService.create({ ...form, coords, reporterId: user.id, images: uploadedUrls })
+      const created = await repairService.create({ ...form, coords, images: uploadedUrls })
       notify(`แจ้งซ่อมสำเร็จ หมายเลขคำขอ ${created.id}`)
       navigate('/citizen/track')
+    } catch (err) {
+      // Covers the blocked/blacklisted-citizen case (403) along with any
+      // other submit failure — previously errors here were silently
+      // swallowed and the person just saw nothing happen.
+      notify(err.response?.data?.message || 'แจ้งซ่อมไม่สำเร็จ กรุณาลองใหม่อีกครั้ง', 'error')
     } finally {
       setSubmitting(false)
     }

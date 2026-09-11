@@ -103,7 +103,17 @@ export async function getPublicById(req, res) {
 }
 
 export async function create(req, res) {
-  const { title, category, description, reporterName, community, location, coords, priority, contactPhone, reporterId, images } = req.body
+  const { title, category, description, reporterName, community, location, coords, priority, contactPhone, images } = req.body
+  // Trust the authenticated citizen's own id, never a client-supplied
+  // reporterId — otherwise a blacklisted citizen could submit "as" someone
+  // else's id and the check below would mean nothing.
+  const reporterId = req.user.id
+
+  const statusCheck = await query('SELECT status FROM tb_user WHERE user_id = $1', [reporterId])
+  if (statusCheck.rows[0]?.status === 'inactive') {
+    return res.status(403).json({ message: 'บัญชีของคุณถูกระงับการแจ้งซ่อม หากมีข้อสงสัยกรุณาติดต่อเจ้าหน้าที่' })
+  }
+
   const id = await nextRequestId()
 
   const result = await query(

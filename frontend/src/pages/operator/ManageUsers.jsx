@@ -41,11 +41,15 @@ export default function ManageUsers() {
   useEffect(() => { load() }, [])
 
   const toggleStatus = async (u) => {
-    if (u.role === 'citizen') return
     try {
       await userService.toggleStatus(u.role, u.id)
-      setUsers((prev) => prev.map((x) => (x.id === u.id && x.role === u.role ? { ...x, status: x.status === 'active' ? 'inactive' : 'active' } : x)))
-      notify('อัปเดตสถานะผู้ใช้สำเร็จ')
+      const nextStatus = u.status === 'active' ? 'inactive' : 'active'
+      setUsers((prev) => prev.map((x) => (x.id === u.id && x.role === u.role ? { ...x, status: nextStatus } : x)))
+      notify(
+        u.role === 'citizen'
+          ? (nextStatus === 'inactive' ? 'ระงับผู้ใช้แล้ว — แจ้งซ่อมใหม่ไม่ได้จนกว่าจะยกเลิกระงับ' : 'ยกเลิกระงับผู้ใช้แล้ว')
+          : 'อัปเดตสถานะผู้ใช้สำเร็จ'
+      )
     } catch {
       notify('อัปเดตสถานะไม่สำเร็จ')
     }
@@ -127,15 +131,22 @@ export default function ManageUsers() {
     { key: 'email', label: 'อีเมล', render: (u) => u.email || '-' },
     {
       key: 'status', label: 'สถานะ',
-      render: (u) =>
-        u.role === 'citizen' ? (
-          <Chip size="small" label="ประชาชน (LIFF)" sx={{ backgroundColor: '#f1f5f9', color: '#64748b', fontWeight: 700 }} />
-        ) : (
+      render: (u) => {
+        const isActive = u.status === 'active'
+        const isBlockedCitizen = !isActive && u.role === 'citizen'
+        const label = isActive ? 'ใช้งาน' : (isBlockedCitizen ? 'ถูกระงับ' : 'ปิดใช้งาน')
+        return (
           <Chip
-            size="small" label={u.status === 'active' ? 'ใช้งาน' : 'ปิดใช้งาน'} onClick={() => toggleStatus(u)}
-            sx={{ cursor: 'pointer', backgroundColor: u.status === 'active' ? '#e2f6ec' : '#f1f5f9', color: u.status === 'active' ? '#1aa768' : '#64748b', fontWeight: 700 }}
+            size="small" label={label} onClick={() => toggleStatus(u)}
+            sx={{
+              cursor: 'pointer',
+              backgroundColor: isActive ? '#e2f6ec' : (isBlockedCitizen ? '#fdecec' : '#f1f5f9'),
+              color: isActive ? '#1aa768' : (isBlockedCitizen ? '#c0392b' : '#64748b'),
+              fontWeight: 700,
+            }}
           />
-        ),
+        )
+      },
     },
     {
       key: 'actions', label: '', render: (u) => (
