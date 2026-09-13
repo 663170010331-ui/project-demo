@@ -209,24 +209,38 @@ export async function updateStatus(req, res) {
       title: `งานแจ้งซ่อม #${id} ถูกช่างปฏิเสธ`,
       message: `${row.title} ถูกช่างเทคนิคปฏิเสธ กรุณามอบหมายช่างคนใหม่`,
     })
-  } else if (row.user_id) {
-    const STATUS_LABEL = {
-      accepted: 'รับเรื่องแล้ว',
-      in_progress: 'กำลังดำเนินการ',
-      completed: 'เสร็จสมบูรณ์',
-      cancelled: 'ถูกยกเลิก',
+  } else {
+    if (row.user_id) {
+      const STATUS_LABEL = {
+        accepted: 'รับเรื่องแล้ว',
+        in_progress: 'กำลังดำเนินการ',
+        completed: 'เสร็จสมบูรณ์',
+        cancelled: 'ถูกยกเลิก',
+      }
+      const label = STATUS_LABEL[status] || status
+      await createNotification({
+        recipientRole: 'citizen',
+        recipientId: row.user_id,
+        requestId: id,
+        type: status === 'completed' ? 'success' : 'info',
+        title: `งานแจ้งซ่อม #${id} ${label}`,
+        message: status === 'completed'
+          ? 'ช่างเทคนิคยืนยันการซ่อมเสร็จสิ้นแล้ว'
+          : `สถานะงานแจ้งซ่อมของคุณอัปเดตเป็น "${label}"`,
+      })
     }
-    const label = STATUS_LABEL[status] || status
-    await createNotification({
-      recipientRole: 'citizen',
-      recipientId: row.user_id,
-      requestId: id,
-      type: status === 'completed' ? 'success' : 'info',
-      title: `งานแจ้งซ่อม #${id} ${label}`,
-      message: status === 'completed'
-        ? 'ช่างเทคนิคยืนยันการซ่อมเสร็จสิ้นแล้ว'
-        : `สถานะงานแจ้งซ่อมของคุณอัปเดตเป็น "${label}"`,
-    })
+    if (status === 'completed') {
+      // The operator only found out a job was done by happening to reopen
+      // it — no signal ever reached them. They're the one who tracks
+      // overall workload/SLA, so they need to know the moment it closes,
+      // not just the citizen.
+      await notifyAllOperators({
+        requestId: id,
+        type: 'success',
+        title: `งานแจ้งซ่อม #${id} เสร็จสิ้นแล้ว`,
+        message: `${row.title} — ช่างยืนยันซ่อมเสร็จเรียบร้อยแล้ว`,
+      })
+    }
   }
 
   res.json(toClientShape(row))

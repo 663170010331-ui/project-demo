@@ -125,38 +125,68 @@ export default function JobDetails() {
               </Button>
             )}
 
-            <Typography fontWeight={700} sx={{ mt: 3, mb: 1 }}>รูปภาพหลังซ่อม</Typography>
-            <Stack direction="row" spacing={1.5} flexWrap="wrap">
-              {afterImages.map((img) => (
-                <Box key={img.id} sx={{ position: 'relative', width: 84, height: 84 }}>
-                  <Box component="img" src={img.preview} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover', opacity: img.uploading ? 0.5 : 1 }} />
-                  {img.uploading && (
-                    <CircularProgress size={22} sx={{ position: 'absolute', top: '50%', left: '50%', mt: '-11px', ml: '-11px' }} />
-                  )}
-                  {img.error && (
-                    <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 3, backgroundColor: 'rgba(220,38,38,0.15)' }}>
-                      <Typography variant="caption" color="error" fontWeight={700} sx={{ textAlign: 'center', px: 0.5 }}>ล้มเหลว</Typography>
-                    </Box>
-                  )}
-                  <IconButton size="small" onClick={() => removeAfterImage(img.id)} sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'white', boxShadow: 1 }}>
-                    <CloseRoundedIcon fontSize="small" />
-                  </IconButton>
+            {job.images?.length > 0 && (
+              <Box sx={{ mt: 3 }}>
+                <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพก่อนซ่อม (ตอนแจ้ง)</Typography>
+                <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                  {job.images.map((url) => (
+                    <Box key={url} component="img" src={url} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover' }} />
+                  ))}
+                </Stack>
+              </Box>
+            )}
+
+            {job.status === 'completed' ? (
+              // Job is already done — show the photos that were actually saved
+              // (job.imagesAfter, from the server), not the local upload buffer
+              // below. That buffer starts empty on every page load, so reading
+              // it here made a genuinely-saved photo look like it had vanished.
+              job.imagesAfter?.length > 0 && (
+                <Box sx={{ mt: 3 }}>
+                  <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพหลังซ่อม</Typography>
+                  <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                    {job.imagesAfter.map((url) => (
+                      <Box key={url} component="img" src={url} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover' }} />
+                    ))}
+                  </Stack>
                 </Box>
-              ))}
-              {afterImages.length < 5 && (
-                <Button component="label" sx={{ width: 84, height: 84, borderRadius: 3, border: '1px dashed #cbd5e1', flexDirection: 'column', gap: 0.5 }}>
-                  <PhotoCameraRoundedIcon sx={{ color: '#94a3b8' }} />
-                  <Typography variant="caption" color="text.secondary">เพิ่มรูป</Typography>
-                  <input type="file" hidden accept="image/*" multiple onChange={handleImages} />
-                </Button>
-              )}
-            </Stack>
-            {afterImages.some((img) => img.error) && (
-              <Stack spacing={0.5} sx={{ mt: 1 }}>
-                {afterImages.filter((img) => img.error).map((img) => (
-                  <Alert key={img.id} severity="error" sx={{ py: 0 }}>{img.error}</Alert>
-                ))}
-              </Stack>
+              )
+            ) : (
+              <>
+                <Typography fontWeight={700} sx={{ mt: 3, mb: 1 }}>รูปภาพหลังซ่อม</Typography>
+                <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                  {afterImages.map((img) => (
+                    <Box key={img.id} sx={{ position: 'relative', width: 84, height: 84 }}>
+                      <Box component="img" src={img.preview} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover', opacity: img.uploading ? 0.5 : 1 }} />
+                      {img.uploading && (
+                        <CircularProgress size={22} sx={{ position: 'absolute', top: '50%', left: '50%', mt: '-11px', ml: '-11px' }} />
+                      )}
+                      {img.error && (
+                        <Box sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 3, backgroundColor: 'rgba(220,38,38,0.15)' }}>
+                          <Typography variant="caption" color="error" fontWeight={700} sx={{ textAlign: 'center', px: 0.5 }}>ล้มเหลว</Typography>
+                        </Box>
+                      )}
+                      <IconButton size="small" onClick={() => removeAfterImage(img.id)} sx={{ position: 'absolute', top: -8, right: -8, backgroundColor: 'white', boxShadow: 1 }}>
+                        <CloseRoundedIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  ))}
+                  {afterImages.length < 5 && (
+                    <Button component="label" sx={{ width: 84, height: 84, borderRadius: 3, border: '1px dashed #cbd5e1', flexDirection: 'column', gap: 0.5 }}>
+                      <PhotoCameraRoundedIcon sx={{ color: '#94a3b8' }} />
+                      <Typography variant="caption" color="text.secondary">เพิ่มรูป</Typography>
+                      <input type="file" hidden accept="image/*" multiple onChange={handleImages} />
+                    </Button>
+                  )}
+                </Stack>
+                {afterImages.some((img) => img.error) && (
+                  <Stack spacing={0.5} sx={{ mt: 1 }}>
+                    {afterImages.filter((img) => img.error).map((img) => (
+                      <Alert key={img.id} severity="error" sx={{ py: 0 }}>{img.error}</Alert>
+                    ))}
+                  </Stack>
+                )}
+              </>
             )}
 
             {job.status === 'in_progress' && (

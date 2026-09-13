@@ -64,17 +64,31 @@ export default function RequestDetails() {
             <Typography variant="body2"><b>แจ้งเมื่อ:</b> {dayjs(request.createdAt).format('D MMM YYYY HH:mm')}</Typography>
 
             {request.images?.length > 0 && (
-              <Stack direction="row" spacing={1.5} sx={{ mt: 2 }}>
-                {request.images.map((src, i) => (
-                  <Box key={i} component="img" src={src} sx={{ width: 90, height: 90, borderRadius: 2, objectFit: 'cover' }} />
-                ))}
-              </Stack>
+              <Box sx={{ mt: 2 }}>
+                <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพตอนแจ้ง</Typography>
+                <Stack direction="row" spacing={1.5}>
+                  {request.images.map((src, i) => (
+                    <Box key={i} component="img" src={src} sx={{ width: 90, height: 90, borderRadius: 2, objectFit: 'cover' }} />
+                  ))}
+                </Stack>
+              </Box>
             )}
 
             {request.status === 'completed' && request.repairResult && (
               <Box sx={{ mt: 3 }}>
                 <Typography fontWeight={700} sx={{ mb: 0.5 }}>รายละเอียดการซ่อม (จากช่าง)</Typography>
                 <Typography color="text.secondary" sx={{ whiteSpace: 'pre-wrap' }}>{request.repairResult}</Typography>
+              </Box>
+            )}
+
+            {request.status === 'completed' && request.imagesAfter?.length > 0 && (
+              <Box sx={{ mt: 3 }}>
+                <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพหลังซ่อม</Typography>
+                <Stack direction="row" spacing={1.5}>
+                  {request.imagesAfter.map((src, i) => (
+                    <Box key={i} component="img" src={src} sx={{ width: 90, height: 90, borderRadius: 2, objectFit: 'cover' }} />
+                  ))}
+                </Stack>
               </Box>
             )}
           </Box>
