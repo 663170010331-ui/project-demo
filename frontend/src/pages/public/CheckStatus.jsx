@@ -5,6 +5,7 @@ import SearchRoundedIcon from '@mui/icons-material/SearchRounded'
 import RestartAltRoundedIcon from '@mui/icons-material/RestartAltRounded'
 import StatusBadge from '../../components/common/StatusBadge.jsx'
 import RepairTimeline from '../../components/common/RepairTimeline.jsx'
+import ZoomableImage from '../../components/common/ZoomableImage.jsx'
 import { repairService } from '../../services/repairService.js'
 import { REPAIR_CATEGORIES } from '../../utils/constants.js'
 import dayjs from 'dayjs'
@@ -86,10 +87,7 @@ export default function CheckStatus() {
                   <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพตอนแจ้ง</Typography>
                   <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                     {result.images.map((url) => (
-                      <Box
-                        key={url} component="img" src={url}
-                        sx={{ width: 88, height: 88, borderRadius: 3, objectFit: 'cover', border: '1px solid #e2e8f0' }}
-                      />
+                      <ZoomableImage key={url} src={url} size={140} />
                     ))}
                   </Box>
                 </Box>
@@ -107,10 +105,7 @@ export default function CheckStatus() {
                   <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพหลังซ่อมเสร็จ</Typography>
                   <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
                     {result.imagesAfter.map((url) => (
-                      <Box
-                        key={url} component="img" src={url}
-                        sx={{ width: 88, height: 88, borderRadius: 3, objectFit: 'cover', border: '1px solid #e2e8f0' }}
-                      />
+                      <ZoomableImage key={url} src={url} size={140} />
                     ))}
                   </Box>
                 </Box>

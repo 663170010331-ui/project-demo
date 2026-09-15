@@ -241,6 +241,26 @@ export async function updateStatus(req, res) {
         message: `${row.title} — ช่างยืนยันซ่อมเสร็จเรียบร้อยแล้ว`,
       })
     }
+    if (status === 'cancelled') {
+      // If a technician was already assigned and working on this, they need
+      // to stop — otherwise they keep showing up to a job that no longer
+      // exists, having never been told it was called off.
+      const assignment = await query(
+        `SELECT technician_id FROM tb_repairassignment WHERE request_id = $1 ORDER BY assigned_date DESC LIMIT 1`,
+        [id]
+      )
+      const technicianId = assignment.rows[0]?.technician_id
+      if (technicianId) {
+        await createNotification({
+          recipientRole: 'technician',
+          recipientId: technicianId,
+          requestId: id,
+          type: 'info',
+          title: `งานแจ้งซ่อม #${id} ถูกยกเลิก`,
+          message: `${row.title} ถูกยกเลิกโดยหัวหน้าช่าง ไม่ต้องดำเนินการต่อ`,
+        })
+      }
+    }
   }
 
   res.json(toClientShape(row))

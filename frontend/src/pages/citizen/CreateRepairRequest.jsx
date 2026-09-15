@@ -9,7 +9,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import MyLocationRoundedIcon from '@mui/icons-material/MyLocationRounded'
 import DeleteOutlineRoundedIcon from '@mui/icons-material/DeleteOutlineRounded'
 import LocationPicker from '../../components/common/LocationPicker.jsx'
-import { REPAIR_CATEGORIES, PRIORITY_LEVELS, COMMUNITIES } from '../../utils/constants.js'
+import { REPAIR_CATEGORIES } from '../../utils/constants.js'
 import { repairService } from '../../services/repairService.js'
 import { useAuth } from '../../contexts/AuthContext.jsx'
 import { useNotifications } from '../../contexts/NotificationContext.jsx'
@@ -19,7 +19,7 @@ export default function CreateRepairRequest() {
   const { notify } = useNotifications()
   const navigate = useNavigate()
   const [form, setForm] = useState({
-    category: 'electricity', title: '', description: '', reporterName: user?.name || '', location: '', community: '',
+    category: 'electricity', title: '', description: '', reporterName: user?.name || '', location: '',
     priority: 'normal', contactPhone: user?.phone || '',
   })
   const [coords, setCoords] = useState(null) // { lat, lng }
@@ -148,13 +148,10 @@ export default function CreateRepairRequest() {
             helperText="กรณีแจ้งแทนผู้อื่น (เช่น ผู้สูงอายุที่บ้าน) กรุณาระบุชื่อของผู้ประสบปัญหาจริง ไม่ใช่ชื่อบัญชี LINE"
           />
 
-          <TextField
-            select label="ชุมชนของผู้แจ้ง (ถ้ามี)" fullWidth value={form.community}
-            onChange={(e) => setForm({ ...form, community: e.target.value })}
-          >
-            <MenuItem value="">-- เลือกชุมชน (ถ้ามี) --</MenuItem>
-            {COMMUNITIES.map((c) => <MenuItem key={c} value={c}>{c}</MenuItem>)}
-          </TextField>
+          {/* No fixed "ชุมชน" dropdown here on purpose (removed per advisor's
+              feedback) — it forced a rough หมู่-level guess instead of an
+              actual address. The free-text location field below is now the
+              one place to describe exactly where the problem is. */}
 
           <Box>
             <Typography fontWeight={700} sx={{ mb: 1 }}>แนบรูปภาพ (ไม่บังคับ)</Typography>
@@ -200,8 +197,9 @@ export default function CreateRepairRequest() {
           </Box>
 
           <TextField
-            label="ระบุตำแหน่ง / สถานที่เกิดเหตุ" fullWidth value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
-            placeholder="เช่น อาคาร A ชั้น 3 ห้อง 301"
+            label="ระบุตำแหน่ง / สถานที่เกิดเหตุ" required fullWidth value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })}
+            placeholder="เช่น บ้านเลขที่ 12 หมู่ 8 ใกล้วัดโพธิ์"
+            helperText="ระบุให้ละเอียดที่สุดเท่าที่ทำได้ เช่น หมู่บ้าน บ้านเลขที่ จุดสังเกต"
           />
 
           <Box>
@@ -236,12 +234,11 @@ export default function CreateRepairRequest() {
             )}
           </Box>
 
-          <TextField
-            select label="ระดับความเร่งด่วน" fullWidth value={form.priority}
-            onChange={(e) => setForm({ ...form, priority: e.target.value })}
-          >
-            {PRIORITY_LEVELS.map((p) => <MenuItem key={p.value} value={p.value}>{p.label}</MenuItem>)}
-          </TextField>
+          {/* No priority/urgency picker here on purpose — letting citizens
+              self-rate urgency invites everyone marking themselves "urgent".
+              The operator sets it when assigning a technician instead (see
+              RequestDetails.jsx); form.priority stays at its 'normal'
+              default below until then. */}
 
           <TextField label="เบอร์ติดต่อกลับ" required fullWidth value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
 

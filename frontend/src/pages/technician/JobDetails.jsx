@@ -7,6 +7,7 @@ import CloseRoundedIcon from '@mui/icons-material/CloseRounded'
 import dayjs from 'dayjs'
 import StatusBadge from '../../components/common/StatusBadge.jsx'
 import RepairTimeline from '../../components/common/RepairTimeline.jsx'
+import ZoomableImage from '../../components/common/ZoomableImage.jsx'
 import { Spinner } from '../../components/common/LoadingState.jsx'
 import { REPAIR_CATEGORIES } from '../../utils/constants.js'
 import { repairService } from '../../services/repairService.js'
@@ -130,7 +131,7 @@ export default function JobDetails() {
                 <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพก่อนซ่อม (ตอนแจ้ง)</Typography>
                 <Stack direction="row" spacing={1.5} flexWrap="wrap">
                   {job.images.map((url) => (
-                    <Box key={url} component="img" src={url} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover' }} />
+                    <ZoomableImage key={url} src={url} size={130} />
                   ))}
                 </Stack>
               </Box>
@@ -146,7 +147,7 @@ export default function JobDetails() {
                   <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพหลังซ่อม</Typography>
                   <Stack direction="row" spacing={1.5} flexWrap="wrap">
                     {job.imagesAfter.map((url) => (
-                      <Box key={url} component="img" src={url} sx={{ width: 84, height: 84, borderRadius: 3, objectFit: 'cover' }} />
+                      <ZoomableImage key={url} src={url} size={130} />
                     ))}
                   </Stack>
                 </Box>

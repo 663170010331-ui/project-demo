@@ -30,10 +30,10 @@ export default function OperatorDashboard() {
       {!stats ? <Spinner /> : (
         <>
           <Grid container spacing={2} sx={{ mb: 3 }}>
-            <Grid item xs={6} md={3}><StatCard icon={<PendingActionsRoundedIcon />} label="รอดำเนินการ" value={stats.pending} accent="#e08a1e" trend="+12% จากเมื่อวาน" /></Grid>
-            <Grid item xs={6} md={3}><StatCard icon={<BuildRoundedIcon />} label="กำลังดำเนินการ" value={stats.inProgress} accent="#2f63f6" trend="+5%" /></Grid>
-            <Grid item xs={6} md={3}><StatCard icon={<CheckCircleRoundedIcon />} label="เสร็จสิ้นแล้ว" value={stats.completed} accent="#1aa768" trend="+23%" /></Grid>
-            <Grid item xs={6} md={3}><StatCard icon={<CancelRoundedIcon />} label="ยกเลิก" value={stats.cancelled} accent="#e0413f" trend="-40%" /></Grid>
+            <Grid item xs={6} md={3}><StatCard icon={<PendingActionsRoundedIcon />} label="รอดำเนินการ" value={stats.pending} accent="#e08a1e" /></Grid>
+            <Grid item xs={6} md={3}><StatCard icon={<BuildRoundedIcon />} label="กำลังดำเนินการ" value={stats.inProgress} accent="#2f63f6" /></Grid>
+            <Grid item xs={6} md={3}><StatCard icon={<CheckCircleRoundedIcon />} label="เสร็จสิ้นแล้ว" value={stats.completed} accent="#1aa768" /></Grid>
+            <Grid item xs={6} md={3}><StatCard icon={<CancelRoundedIcon />} label="ยกเลิก" value={stats.cancelled} accent="#e0413f" /></Grid>
           </Grid>
 
           <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -43,10 +43,11 @@ export default function OperatorDashboard() {
                 <Stack direction="row" spacing={2} alignItems="flex-end" sx={{ height: 160 }}>
                   {stats.monthlyTrend.map((m) => (
                     <Stack key={m.month} alignItems="center" spacing={1} sx={{ flex: 1 }}>
+                      <Typography variant="caption" fontWeight={700} color="text.secondary">{m.count}</Typography>
                       <Box
                         sx={{
                           width: '100%', maxWidth: 32, borderRadius: '8px 8px 0 0', backgroundColor: '#2f63f6',
-                          height: `${(m.count / maxMonth) * 120}px`,
+                          height: `${m.count === 0 ? 2 : (m.count / maxMonth) * 120}px`,
                         }}
                       />
                       <Typography variant="caption" color="text.secondary">{m.month}</Typography>

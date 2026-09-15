@@ -8,6 +8,7 @@ import ArrowBackRoundedIcon from '@mui/icons-material/ArrowBackRounded'
 import dayjs from 'dayjs'
 import StatusBadge from '../../components/common/StatusBadge.jsx'
 import RepairTimeline from '../../components/common/RepairTimeline.jsx'
+import ZoomableImage from '../../components/common/ZoomableImage.jsx'
 import { Spinner } from '../../components/common/LoadingState.jsx'
 import { REPAIR_CATEGORIES, PRIORITY_LEVELS } from '../../utils/constants.js'
 import { repairService } from '../../services/repairService.js'
@@ -22,6 +23,8 @@ export default function RequestDetails() {
   const [selectedTech, setSelectedTech] = useState('')
   const [priority, setPriority] = useState('normal')
   const [note, setNote] = useState('')
+  const [cancelOpen, setCancelOpen] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
 
   const load = () => repairService.getById(id).then((r) => { setRequest(r); setPriority(r.priority) })
 
@@ -32,6 +35,18 @@ export default function RequestDetails() {
     notify('มอบหมายงานสำเร็จ')
     setAssignOpen(false)
     load()
+  }
+
+  const handleCancel = async () => {
+    setCancelling(true)
+    try {
+      await repairService.updateStatus(id, 'cancelled')
+      notify('ยกเลิกคำขอแจ้งซ่อมแล้ว')
+      setCancelOpen(false)
+      load()
+    } finally {
+      setCancelling(false)
+    }
   }
 
   if (!request) return <Spinner />
@@ -68,7 +83,7 @@ export default function RequestDetails() {
                 <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพตอนแจ้ง</Typography>
                 <Stack direction="row" spacing={1.5}>
                   {request.images.map((src, i) => (
-                    <Box key={i} component="img" src={src} sx={{ width: 90, height: 90, borderRadius: 2, objectFit: 'cover' }} />
+                    <ZoomableImage key={i} src={src} size={130} />
                   ))}
                 </Stack>
               </Box>
@@ -86,7 +101,7 @@ export default function RequestDetails() {
                 <Typography fontWeight={700} sx={{ mb: 1 }}>รูปภาพหลังซ่อม</Typography>
                 <Stack direction="row" spacing={1.5}>
                   {request.imagesAfter.map((src, i) => (
-                    <Box key={i} component="img" src={src} sx={{ width: 90, height: 90, borderRadius: 2, objectFit: 'cover' }} />
+                    <ZoomableImage key={i} src={src} size={130} />
                   ))}
                 </Stack>
               </Box>
@@ -112,6 +127,11 @@ export default function RequestDetails() {
             <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={() => setAssignOpen(true)}>
               {assignedTech ? 'มอบหมายงานใหม่' : 'มอบหมายงานให้ช่าง'}
             </Button>
+            {!['completed', 'cancelled'].includes(request.status) && (
+              <Button fullWidth variant="outlined" color="error" sx={{ mt: 1.5 }} onClick={() => setCancelOpen(true)}>
+                ยกเลิกคำขอ
+              </Button>
+            )}
           </Box>
         </Grid>
       </Grid>
@@ -145,6 +165,21 @@ export default function RequestDetails() {
         <DialogActions sx={{ p: 2 }}>
           <Button onClick={() => setAssignOpen(false)}>ยกเลิก</Button>
           <Button variant="contained" disabled={!selectedTech} onClick={handleAssign}>มอบหมายงาน</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={cancelOpen} onClose={() => !cancelling && setCancelOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle>ยืนยันการยกเลิกคำขอ</DialogTitle>
+        <DialogContent dividers>
+          <Typography>
+            ต้องการยกเลิกคำขอ <strong>{request.id}</strong> ({request.title}) ใช่หรือไม่? ผู้แจ้งจะได้รับแจ้งเตือนว่าคำขอถูกยกเลิก การกระทำนี้ย้อนกลับไม่ได้
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ p: 2 }}>
+          <Button onClick={() => setCancelOpen(false)} disabled={cancelling}>ปิด</Button>
+          <Button color="error" variant="contained" onClick={handleCancel} disabled={cancelling}>
+            {cancelling ? 'กำลังยกเลิก...' : 'ยืนยันยกเลิก'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>
